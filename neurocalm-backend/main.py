@@ -21,7 +21,7 @@ _raw_origins = os.getenv("ALLOWED_ORIGINS", "")
 ALLOWED_ORIGINS = (
     [o.strip() for o in _raw_origins.split(",") if o.strip()]
     if _raw_origins
-    else [FRONTEND_ORIGIN, "http://localhost:3000", "http://127.0.0.1:3000"]
+    else [FRONTEND_ORIGIN, "http://localhost:3000", "http://127.0.0.1:3000", "https://*.vercel.app", "https://*.hf.space"]
 )
 
 
