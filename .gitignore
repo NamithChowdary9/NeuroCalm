@@ -1,0 +1,29 @@
+# Secrets — never commit
+neurocalm-backend/.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+venv/
+env/
+.venv/
+*.egg-info/
+
+# Node
+neurocalm-frontend/node_modules/
+neurocalm-frontend/build/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Misc
+backup/
+~/
