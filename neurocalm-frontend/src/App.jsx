@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { EnergyProvider, useEnergy } from "./context/EnergyContext";
 import Sidebar from "./components/Sidebar";
 import Header  from "./components/Header";
@@ -13,6 +13,7 @@ import AIInsights from "./pages/AIInsights";
 import MoodTrends from "./pages/MoodTrends";
 import BurnoutForecast from "./pages/BurnoutForecast";
 import Settings from "./pages/Settings";
+import { auth, getRedirectResult } from "./firebase";
 import "./index.css";
 
 function Shell() {
@@ -59,8 +60,26 @@ export default function App() {
   return (
     <EnergyProvider>
       <BrowserRouter>
+        <RedirectHandler/>
         <AppRoutes/>
       </BrowserRouter>
     </EnergyProvider>
   );
+}
+
+function RedirectHandler() {
+  const { setUser } = useEnergy();
+  useEffect(() => {
+    getRedirectResult(auth).then(result => {
+      if (result?.user) {
+        setUser({
+          name:  result.user.displayName,
+          email: result.user.email,
+          photo: result.user.photoURL,
+          uid:   result.user.uid,
+        });
+      }
+    }).catch(() => {});
+  }, []);
+  return null;
 }
