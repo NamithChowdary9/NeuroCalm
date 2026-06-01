@@ -2,7 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey:            "AIzaSyCF-w8Tcr2vx0mv-o75QT-4yandLS_Gpm8",
+  apiKey:            "AIzaSyCF-w8Tcr2vx0mv-o75QT-4yahdLS_Gpm8",
   authDomain:        "neurocalm-87ded.firebaseapp.com",
   projectId:         "neurocalm-87ded",
   storageBucket:     "neurocalm-87ded.firebasestorage.app",
