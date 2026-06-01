@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey:            "AIzaSyCF-w8Tcr2vx0mv-o75QT-4yandLS_Gpm8",
@@ -17,25 +17,10 @@ export const provider = new GoogleAuthProvider();
 
 provider.setCustomParameters({ prompt: "select_account" });
 
+// Use redirect (works on all browsers/devices without popup issues)
 export async function signInWithGoogle() {
-  try {
-    // Try popup first
-    const result = await signInWithPopup(auth, provider);
-    const user   = result.user;
-    return {
-      name:  user.displayName,
-      email: user.email,
-      photo: user.photoURL,
-      uid:   user.uid,
-    };
-  } catch (err) {
-    // If popup blocked, fall back to redirect
-    if (err.code === "auth/popup-blocked" || err.code === "auth/popup-closed-by-user") {
-      await signInWithRedirect(auth, provider);
-      return null; // page will redirect
-    }
-    throw err;
-  }
+  await signInWithRedirect(auth, provider);
+  // Page will redirect to Google, then back — result handled in App.jsx
 }
 
 export { getRedirectResult };

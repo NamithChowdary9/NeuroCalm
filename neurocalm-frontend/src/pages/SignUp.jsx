@@ -32,12 +32,11 @@ export default function SignUp() {
     setGLoading(true);
     setError("");
     try {
-      const user = await signInWithGoogle();
-      setUser(user);
-      navigate("/dashboard");
+      await signInWithGoogle();
+      // Page redirects to Google — no further action needed here
     } catch (e) {
-      setError("Google sign-in failed. Please try again.");
-    } finally {
+      console.error("Google sign-in error:", e);
+      setError(`Sign-in error: ${e.message}`);
       setGLoading(false);
     }
   };

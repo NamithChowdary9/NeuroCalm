@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { EnergyProvider, useEnergy } from "./context/EnergyContext";
 import Sidebar from "./components/Sidebar";
 import Header  from "./components/Header";
@@ -69,6 +69,7 @@ export default function App() {
 
 function RedirectHandler() {
   const { setUser } = useEnergy();
+  const navigate = useNavigate();
   useEffect(() => {
     getRedirectResult(auth).then(result => {
       if (result?.user) {
@@ -78,8 +79,11 @@ function RedirectHandler() {
           photo: result.user.photoURL,
           uid:   result.user.uid,
         });
+        navigate("/dashboard");
       }
-    }).catch(() => {});
+    }).catch((e) => {
+      console.error("Redirect result error:", e);
+    });
   }, []);
   return null;
 }
