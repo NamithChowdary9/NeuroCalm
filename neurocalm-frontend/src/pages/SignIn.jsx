@@ -28,11 +28,21 @@ export default function SignIn() {
     setGLoading(true);
     setError("");
     try {
-      await signInWithGoogle();
-      // Page redirects to Google — no further action needed here
+      const firebaseUser = await signInWithGoogle();
+      if (firebaseUser) {
+        // Popup succeeded — setUser and navigate
+        setUser({
+          name:  firebaseUser.displayName || firebaseUser.email,
+          email: firebaseUser.email,
+          photo: firebaseUser.photoURL,
+          uid:   firebaseUser.uid,
+        });
+        navigate("/dashboard");
+      }
+      // If null, redirect flow is in progress — FirebaseAuthSync will handle it
     } catch (e) {
       console.error("Google sign-in error:", e);
-      setError(`Sign-in error: ${e.message}`);
+      setError(`Sign-in failed: ${e.message}`);
       setGLoading(false);
     }
   };

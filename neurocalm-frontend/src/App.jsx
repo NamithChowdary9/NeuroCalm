@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { EnergyProvider, useEnergy } from "./context/EnergyContext";
 import Sidebar from "./components/Sidebar";
 import Header  from "./components/Header";
@@ -13,7 +13,7 @@ import AIInsights from "./pages/AIInsights";
 import MoodTrends from "./pages/MoodTrends";
 import BurnoutForecast from "./pages/BurnoutForecast";
 import Settings from "./pages/Settings";
-import { auth, getRedirectResult } from "./firebase";
+import { auth, onAuthStateChanged } from "./firebase";
 import "./index.css";
 
 function Shell() {
@@ -56,46 +56,35 @@ function AppRoutes() {
   );
 }
 
-function RedirectHandler({ onDone }) {
-  const { setUser } = useEnergy();
-  const navigate = useNavigate();
+/* Listens to Firebase auth state — works for both popup and redirect */
+function FirebaseAuthSync() {
+  const { setUser, user } = useEnergy();
 
   useEffect(() => {
-    getRedirectResult(auth)
-      .then(result => {
-        if (result?.user) {
-          setUser({
-            name:  result.user.displayName,
-            email: result.user.email,
-            photo: result.user.photoURL,
-            uid:   result.user.uid,
-          });
-          navigate("/dashboard", { replace: true });
-        }
-      })
-      .catch(e => console.error("Redirect result error:", e))
-      .finally(() => onDone());
+    const unsub = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        // Firebase has a signed-in user — sync to app state
+        setUser({
+          name:  firebaseUser.displayName || firebaseUser.email,
+          email: firebaseUser.email,
+          photo: firebaseUser.photoURL,
+          uid:   firebaseUser.uid,
+        });
+      }
+      // Don't clear user on null — let manual sign-out handle that
+    });
+    return () => unsub();
   }, []);
 
   return null;
 }
 
 export default function App() {
-  const [authChecked, setAuthChecked] = useState(false);
-
   return (
     <EnergyProvider>
       <BrowserRouter>
-        <RedirectHandler onDone={() => setAuthChecked(true)}/>
-        {/* Show nothing until redirect check is done to avoid flash */}
-        {authChecked
-          ? <AppRoutes/>
-          : (
-            <div style={{ minHeight:"100vh", background:"var(--bg)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-              <div style={{ width:32, height:32, borderRadius:"50%", border:"3px solid rgba(99,102,241,0.3)", borderTopColor:"#6366F1", animation:"spin 0.8s linear infinite" }}/>
-            </div>
-          )
-        }
+        <FirebaseAuthSync/>
+        <AppRoutes/>
       </BrowserRouter>
     </EnergyProvider>
   );
