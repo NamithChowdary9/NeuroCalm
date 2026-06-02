@@ -7,6 +7,9 @@ import {
   getRedirectResult,
   onAuthStateChanged,
   signOut,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
 } from "firebase/auth";
 
 const firebaseConfig = {
@@ -43,3 +46,16 @@ export async function signInWithGoogle() {
 }
 
 export { onAuthStateChanged, getRedirectResult, signOut };
+
+/* ── Email / Password auth ── */
+export async function registerWithEmail(name, email, password) {
+  const result = await createUserWithEmailAndPassword(auth, email, password);
+  // Save display name to Firebase profile
+  await updateProfile(result.user, { displayName: name });
+  return result.user;
+}
+
+export async function loginWithEmail(email, password) {
+  const result = await signInWithEmailAndPassword(auth, email, password);
+  return result.user;
+}

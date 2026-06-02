@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { useEnergy } from "../context/EnergyContext";
 import { IconZapLogo, IconMail, IconLock, IconUser } from "../components/NcIcons";
-import { signInWithGoogle } from "../firebase";
+import { signInWithGoogle, registerWithEmail } from "../firebase";
 
 function GoogleIcon() {
   return (
@@ -14,6 +14,16 @@ function GoogleIcon() {
       <path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.3 5.6l6.2 5.2C41.1 35.5 44 30.2 44 24c0-1.3-.1-2.7-.4-3.9z"/>
     </svg>
   );
+}
+
+function firebaseErrorMessage(code) {
+  switch (code) {
+    case "auth/email-already-in-use":  return "An account with this email already exists. Try signing in.";
+    case "auth/invalid-email":         return "Please enter a valid email address.";
+    case "auth/weak-password":         return "Password is too weak. Use at least 6 characters.";
+    case "auth/too-many-requests":     return "Too many attempts. Please try again later.";
+    default:                           return "Registration failed. Please try again.";
+  }
 }
 
 export default function SignUp() {
@@ -56,10 +66,20 @@ export default function SignUp() {
     if (form.password.length < 6) { setError("Password must be at least 6 characters."); return; }
     if (form.password !== form.confirm) { setError("Passwords do not match."); return; }
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1000));
-    setUser({ name:form.name, email:form.email });
-    setLoading(false);
-    navigate("/dashboard");
+    try {
+      const firebaseUser = await registerWithEmail(form.name, form.email, form.password);
+      setUser({
+        name:  form.name,
+        email: firebaseUser.email,
+        photo: firebaseUser.photoURL,
+        uid:   firebaseUser.uid,
+      });
+      navigate("/dashboard");
+    } catch (e) {
+      setError(firebaseErrorMessage(e.code));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

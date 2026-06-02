@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { useEnergy } from "../context/EnergyContext";
 import { IconZapLogo, IconMail, IconLock } from "../components/NcIcons";
-import { signInWithGoogle } from "../firebase";
+import { signInWithGoogle, loginWithEmail } from "../firebase";
 
 function GoogleIcon() {
   return (
@@ -14,6 +14,18 @@ function GoogleIcon() {
       <path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.3 5.6l6.2 5.2C41.1 35.5 44 30.2 44 24c0-1.3-.1-2.7-.4-3.9z"/>
     </svg>
   );
+}
+
+function firebaseErrorMessage(code) {
+  switch (code) {
+    case "auth/user-not-found":      return "No account found with this email.";
+    case "auth/wrong-password":      return "Incorrect password. Please try again.";
+    case "auth/invalid-email":       return "Please enter a valid email address.";
+    case "auth/invalid-credential":  return "Wrong email or password. Please try again.";
+    case "auth/too-many-requests":   return "Too many failed attempts. Please try again later.";
+    case "auth/user-disabled":       return "This account has been disabled.";
+    default:                         return "Sign-in failed. Please check your credentials.";
+  }
 }
 
 export default function SignIn() {
@@ -52,11 +64,20 @@ export default function SignIn() {
     setError("");
     if (!form.email || !form.password) { setError("Please fill in all fields."); return; }
     setLoading(true);
-    await new Promise(r => setTimeout(r, 900));
-    const name = form.email.split("@")[0].replace(/[._-]/g," ").replace(/\b\w/g, c => c.toUpperCase());
-    setUser({ name, email:form.email });
-    setLoading(false);
-    navigate("/dashboard");
+    try {
+      const firebaseUser = await loginWithEmail(form.email, form.password);
+      setUser({
+        name:  firebaseUser.displayName || form.email.split("@")[0],
+        email: firebaseUser.email,
+        photo: firebaseUser.photoURL,
+        uid:   firebaseUser.uid,
+      });
+      navigate("/dashboard");
+    } catch (e) {
+      setError(firebaseErrorMessage(e.code));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
