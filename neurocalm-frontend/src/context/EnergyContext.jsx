@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from "react";
+import { analyzeEnergy } from "../api";
 
 const Ctx = createContext(null);
 
@@ -109,6 +110,7 @@ export function EnergyProvider({ children }) {
   const [aiMemory,  setAiMemory]  = useState(()=>get(KEYS.aiMemory,{streaks:{},patterns:[],lastAnalysis:null}));
   const [sessionStart] = useState(Date.now());
   const lastHourRef = useRef(null);
+  const lastBackendSyncRef = useRef("");
 
   // Persist
   useEffect(()=>set(KEYS.metrics,metrics),[metrics]);
@@ -155,6 +157,29 @@ export function EnergyProvider({ children }) {
         return next;
       });
       lastHourRef.current = hour;
+
+      const syncKey = [
+        user?.uid || user?.email || "default",
+        entry.date,
+        hour,
+        score,
+        risk,
+        metrics.sleepHours,
+        metrics.stressLevel,
+        metrics.meetings,
+        metrics.notifications,
+        metrics.workload,
+        metrics.mood,
+        metrics.socialInteraction,
+        metrics.recoveryHours,
+      ].join("|");
+
+      if (lastBackendSyncRef.current !== syncKey) {
+        lastBackendSyncRef.current = syncKey;
+        analyzeEnergy(metrics, user).catch(err => {
+          console.warn("[NeuroCalm] MongoDB sync failed:", err.message);
+        });
+      }
     };
 
     snap(); // immediate on mount
@@ -162,7 +187,7 @@ export function EnergyProvider({ children }) {
     const msLeft = (60-now.getMinutes())*60000 - now.getSeconds()*1000;
     const tid    = setTimeout(()=>{ snap(); const iv=setInterval(snap,3600000); return ()=>clearInterval(iv); }, msLeft);
     return ()=>clearTimeout(tid);
-  },[metrics]);
+  },[metrics,user]);
 
   // ── Auto recovery drift ───────────────────────────────────────
   useEffect(()=>{

@@ -21,8 +21,9 @@ _raw_origins = os.getenv("ALLOWED_ORIGINS", "")
 ALLOWED_ORIGINS = (
     [o.strip() for o in _raw_origins.split(",") if o.strip()]
     if _raw_origins
-    else [FRONTEND_ORIGIN, "http://localhost:3000", "http://127.0.0.1:3000", "https://*.vercel.app", "https://*.hf.space"]
+    else [FRONTEND_ORIGIN, "http://localhost:3000", "http://127.0.0.1:3000"]
 )
+ALLOWED_ORIGIN_REGEX = os.getenv("ALLOWED_ORIGIN_REGEX", r"https://.*\.(vercel\.app|hf\.space)")
 
 
 @asynccontextmanager
@@ -47,6 +48,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
+    allow_origin_regex=ALLOWED_ORIGIN_REGEX,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
