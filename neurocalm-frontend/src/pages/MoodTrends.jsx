@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { useEnergy } from "../context/EnergyContext";
+import { formatHourLabel, useEnergy } from "../context/EnergyContext";
 import { IconHeart, IconZap } from "../components/NcIcons";
 
 const MOODS = [
@@ -32,7 +32,7 @@ export default function MoodTrends() {
   const log = Array.isArray(moodLog) ? moodLog : [];
 
   const moodHistory = h.slice(0,14).reverse().map(x => ({
-    time:  x.label || `${x.hour}:00`,
+    time:  formatHourLabel(x.hour, true) || x.label,
     mood:  (x.mood   || 5) * 10,
     stress:(x.stress || 5) * 10,
   }));
@@ -156,7 +156,7 @@ export default function MoodTrends() {
                       <div style={{ fontSize:13,color:"var(--text)",fontWeight:500 }}>{m.label} · Energy {entry.energy}/10</div>
                       {entry.note && <div style={{ fontSize:12,color:"var(--text2)",marginTop:2 }}>{entry.note}</div>}
                     </div>
-                    <div style={{ fontSize:11,color:"var(--text2)" }}>{ts.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})}</div>
+                    <div style={{ fontSize:11,color:"var(--text2)" }}>{ts.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:true})}</div>
                   </div>
                 );
               })}

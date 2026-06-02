@@ -11,6 +11,13 @@ DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 HOURS = list(range(9, 21))
 
 
+def format_hour_label(hour: int, with_minutes: bool = True) -> str:
+    normalized = hour % 24
+    suffix = "AM" if normalized < 12 else "PM"
+    display_hour = normalized % 12 or 12
+    return f"{display_hour}:00 {suffix}" if with_minutes else f"{display_hour} {suffix}"
+
+
 def seeded_random(seed: int, min_val: int, max_val: int) -> int:
     random.seed(seed)
     return random.randint(min_val, max_val)
@@ -53,7 +60,7 @@ async def get_emotional_timeline():
     random.seed(99)
     data = [random.randint(30, 95) for _ in HOURS]
     return {
-        "labels": [f"{h}:00" for h in HOURS],
+        "labels": [format_hour_label(h) for h in HOURS],
         "data": data,
     }
 
@@ -61,7 +68,7 @@ async def get_emotional_timeline():
 @router.get("/heatmap")
 async def get_heatmap():
     """Weekly activity intensity heatmap."""
-    hour_labels = [f"{h}:00" for h in HOURS]
+    hour_labels = [format_hour_label(h) for h in HOURS]
     grid = []
     for di, day in enumerate(DAYS):
         row = []

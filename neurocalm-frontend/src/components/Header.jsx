@@ -60,7 +60,7 @@ export default function Header({ sidebarOpen, onToggleSidebar }) {
         {/* Time */}
         <div style={{ textAlign:"right",marginRight:4 }}>
           <div style={{ fontFamily:"Sora,sans-serif",fontSize:12.5,fontWeight:600,color:"var(--text)",lineHeight:1.2 }}>
-            {time.toLocaleTimeString("en-US", { hour:"2-digit", minute:"2-digit" })}
+            {time.toLocaleTimeString("en-US", { hour:"2-digit", minute:"2-digit",hour12:true })}
           </div>
           <div style={{ fontSize:10.5,color:"var(--text2)" }}>
             {time.toLocaleDateString("en-US", { weekday:"short", month:"short", day:"numeric" })}

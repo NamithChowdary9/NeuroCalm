@@ -15,6 +15,15 @@ const DEFAULT = {
   callsReceived:8, screenTimeHours:6, appSwitches:25,
 };
 
+export const formatHourLabel = (hour, withMinutes=false) => {
+  const value = Number.parseInt(hour, 10);
+  if (Number.isNaN(value)) return "";
+  const normalized = ((value % 24) + 24) % 24;
+  const suffix = normalized < 12 ? "AM" : "PM";
+  const displayHour = normalized % 12 || 12;
+  return withMinutes ? `${displayHour}:00 ${suffix}` : `${displayHour} ${suffix}`;
+};
+
 // ── Scoring formulas ──────────────────────────────────────────────
 export const calcScore = m => Math.max(0,Math.min(100,Math.round(
   100 - 5*(m.meetings||0) - 4*(m.stressLevel||5) - 3*((m.notifications||0)/10)
@@ -115,7 +124,7 @@ export function EnergyProvider({ children }) {
       const entry = {
         ts: Date.now(), hour, date: now.toLocaleDateString("en-US",{month:"short",day:"numeric"}),
         dayOfWeek: now.toLocaleDateString("en-US",{weekday:"short"}),
-        label: `${hour}:00`,
+        label: formatHourLabel(hour, true),
         score, risk,
         stability:  calcStability(metrics),
         social:     calcSocialPressure(metrics),

@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { AreaChart, Area, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { useEnergy } from "../context/EnergyContext";
+import { formatHourLabel, useEnergy } from "../context/EnergyContext";
 
 const TT_STYLE = { contentStyle:{ background:"#0D1117",border:"1px solid rgba(99,102,241,0.2)",borderRadius:10,fontSize:12,fontFamily:"Inter,sans-serif" }, labelStyle:{ color:"#94A3B8",fontSize:11 }, itemStyle:{ color:"#818CF8" } };
 
@@ -40,8 +40,8 @@ export default function Analytics() {
 
   // Hourly energy & risk
   const hourlyData = useMemo(()=>{
-    if(!hasData) return Array.from({length:8},(_,i)=>({ label:`${9+i}:00`, score:Math.round(55+Math.sin(i*0.8)*22), risk:Math.round(30+Math.cos(i*0.7)*15) }));
-    return hourly.slice(0,16).reverse().map(h=>({ label:h.label||`${h.hour}:00`, score:h.score||0, risk:h.risk||0, stress:(h.stress||5)*10, mood:(h.mood||5)*10 }));
+    if(!hasData) return Array.from({length:8},(_,i)=>({ label:formatHourLabel(9+i, true), score:Math.round(55+Math.sin(i*0.8)*22), risk:Math.round(30+Math.cos(i*0.7)*15) }));
+    return hourly.slice(0,16).reverse().map(h=>({ label:formatHourLabel(h.hour, true)||h.label, score:h.score||0, risk:h.risk||0, stress:(h.stress||5)*10, mood:(h.mood||5)*10 }));
   },[hourly,hasData]);
 
   // Daily averages
@@ -59,10 +59,10 @@ export default function Analytics() {
   const sessions   = hourly.length;
 
   const heatDays  = DAYS;
-  const heatHours = Array.from({length:16},(_,i)=>`${7+i}:00`);
+  const heatHours = Array.from({length:16},(_,i)=>7+i);
   const heatmap   = useMemo(()=>{
-    return heatDays.map(d=>heatHours.map((_,hi)=>{
-      const match=hourly.find(h=>h.dayOfWeek===d&&h.hour===(7+hi));
+    return heatDays.map(d=>heatHours.map(hour=>{
+      const match=hourly.find(h=>h.dayOfWeek===d&&h.hour===hour);
       return match?Math.round(100-(match.score||50)):0;
     }));
   },[hourly]);
@@ -148,9 +148,9 @@ export default function Analytics() {
           <div style={{ display:"flex",alignItems:"center",marginBottom:6 }}>
             <div style={{ width:44,flexShrink:0 }}/>
             <div style={{ display:"flex",flex:1,gap:3 }}>
-              {heatHours.map(h=>(
-                <div key={h} style={{ flex:1,textAlign:"center",fontSize:10,color:"var(--text2)",fontWeight:500 }}>
-                  {h.split(":")[0]}
+              {heatHours.map(hour=>(
+                <div key={hour} style={{ flex:1,textAlign:"center",fontSize:10,color:"var(--text2)",fontWeight:500 }}>
+                  {formatHourLabel(hour)}
                 </div>
               ))}
             </div>
@@ -161,11 +161,11 @@ export default function Analytics() {
             <div key={day} style={{ display:"flex",alignItems:"center",gap:0,marginBottom:5 }}>
               <div style={{ width:44,fontSize:11,color:"var(--text2)",fontWeight:600,flexShrink:0 }}>{day}</div>
               <div style={{ display:"flex",flex:1,gap:3 }}>
-                {heatHours.map((_,hi)=>{
+                {heatHours.map((hour,hi)=>{
                   const val = heatmap[di]?.[hi]||0;
                   return (
-                    <div key={hi}
-                      title={`${day} ${heatHours[hi]}: ${val}% load`}
+                    <div key={hour}
+                      title={`${day} ${formatHourLabel(hour, true)}: ${val}% load`}
                       style={{
                         flex:1, height:28, borderRadius:5,
                         background:heatColor(val),
